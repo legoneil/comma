@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comma</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root {
+  --bg: #f6f8fb; --paper: #ffffff; --ink: #1a2130; --muted: #5a6476; --line: #dce2eb;
+  --accent: #2443c9; --accent-ink: #ffffff; --grammar: #d2432a; --punct: #b77c00; --caps: #7446d6; --ok: #1f8a5a;
+  --font-text: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Instrument Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171e; --paper: #1b1f28; --ink: #e5e8ee; --muted: #97a0b1; --line: #2c3240;
+    --accent: #8099ff; --accent-ink: #0d1020; --grammar: #ff7d66; --punct: #eeb53f; --caps: #b591ff; --ok: #4fc58d;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 14px; display: flex; flex-direction: column; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.head { padding: 14px 14px 12px; background: var(--paper); border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.logo { width: 30px; height: 30px; flex: none; }
+.name { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.status { margin-left: auto; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.status.busy .dot { background: var(--punct); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+.total { display: flex; align-items: baseline; gap: 6px; }
+.total b { font-size: 28px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.total span { color: var(--muted); }
+.total .btn { margin-left: auto; }
+.btn { border: 1px solid var(--line); background: var(--paper); padding: 6px 12px; border-radius: 7px; font-weight: 500; font-size: 13px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 3px 9px 3px 8px; font-size: 12px; color: var(--muted); }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--muted)); }
+.chip[data-cat="all"]::before { display: none; }
+.chip b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); }
+[data-cat="grammar"] { --c: var(--grammar); }
+[data-cat="punct"] { --c: var(--punct); }
+[data-cat="caps"] { --c: var(--caps); }
+
+main { flex: 1; overflow: auto; min-height: 0; }
+.issues { list-style: none; margin: 0; padding: 8px; display: grid; gap: 6px; }
+.issue { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 8px; padding: 9px 11px; cursor: pointer; }
+.issue:hover { border-color: var(--muted); border-left-color: var(--c); }
+.issue.active { box-shadow: 0 0 0 1px var(--c); }
+.issue-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.issue-title { font-weight: 600; font-size: 13.5px; }
+.issue-kind { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--c); font-weight: 600; flex: none; }
+.ctx { margin: 5px 0 0; font-family: var(--font-text); font-size: 15px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+.ctx del { color: var(--grammar); text-decoration: line-through; background: color-mix(in srgb, var(--grammar) 10%, transparent); border-radius: 3px; padding: 0 1px; }
+.ctx ins { color: var(--ok); text-decoration: none; font-weight: 600; background: color-mix(in srgb, var(--ok) 12%, transparent); border-radius: 3px; padding: 0 1px; }
+.ctx mark { color: var(--grammar); background: color-mix(in srgb, var(--grammar) 12%, transparent); border-radius: 3px; padding: 0 1px; }
+.ctx .ws { font-family: var(--font-mono); font-size: 11px; }
+.msg { display: none; margin: 7px 0 0; font-size: 12.5px; line-height: 1.45; }
+.issue.active .msg { display: block; }
+.acts { display: flex; gap: 6px; margin-top: 9px; }
+.acts button { border: 1px solid var(--line); background: var(--paper); border-radius: 6px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
+.acts .accept { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.empty { padding: 28px 18px; text-align: center; color: var(--muted); line-height: 1.5; }
+.empty strong { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+.empty .check { width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); font-size: 18px; font-weight: 700; }
+.error { margin: 8px; padding: 10px 12px; border-radius: 8px; background: color-mix(in srgb, var(--grammar) 10%, var(--paper)); color: var(--ink); font-size: 12.5px; line-height: 1.45; }
+
+footer { padding: 10px 14px; border-top: 1px solid var(--line); background: var(--paper); font-size: 11.5px; color: var(--muted); line-height: 1.45; display: flex; align-items: center; gap: 10px; }
+footer label { display: flex; align-items: center; gap: 5px; white-space: nowrap; color: var(--ink); cursor: pointer; }
+footer span { flex: 1; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="head">
+  <div class="row">
+    <img class="logo" src="assets/icon-64.png" alt="">
+    <span class="name">Comma</span>
+    <span class="status" id="status"><span class="dot"></span><span id="statusText">Starting</span></span>
+  </div>
+  <div class="total"><b id="totalNum">0</b><span id="totalLabel">issues</span>
+    <button class="btn primary" id="fixAll" type="button" disabled>Fix all</button>
+  </div>
+  <div class="chips">
+    <button class="chip" type="button" data-cat="all" aria-pressed="true">All <b id="c-all">0</b></button>
+    <button class="chip" type="button" data-cat="grammar" aria-pressed="false">Grammar <b id="c-grammar">0</b></button>
+    <button class="chip" type="button" data-cat="punct" aria-pressed="false">Punctuation <b id="c-punct">0</b></button>
+    <button class="chip" type="button" data-cat="caps" aria-pressed="false">Capitals <b id="c-caps">0</b></button>
+  </div>
+</header>
+<main>
+  <div class="error" id="error" hidden></div>
+  <ol class="issues" id="issues"></ol>
+  <div class="empty" id="empty"><strong>Loading</strong>Reading your document.</div>
+</main>
+<footer>
+  <label><input type="checkbox" id="live" checked> Check as I type</label>
+  <span>No AI. Your text stays in Word.</span>
+  <button class="btn" id="recheck" type="button">Check</button>
+</footer>
+
+<script src="engine.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const CAT_LABEL = { grammar: 'Grammar', punct: 'Punctuation', caps: 'Capitalization' };
+let paras = [], issues = [], shown = [], filter = 'all', activeKey = null;
+let busy = false, pending = false, liveTimer = null;
+const ignored = new Set();
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const keyOf = (x, text) => x.rule + '|' + x.title + '|' + text.slice(Math.max(0, x.s - 15), x.e + 15);
+// Word uses \v for manual line breaks; treat it as a newline (same length, so offsets still match).
+const norm = t => t.replace(/\u000b/g, '\n');
+
+function setStatus(text, isBusy) { $('statusText').textContent = text; $('status').classList.toggle('busy', !!isBusy); }
+function showError(e) {
+  const el = $('error');
+  el.hidden = false;
+  el.textContent = 'Word reported a problem: ' + (e && e.message ? e.message : String(e)) + ' Press Check to try again.';
+}
+
+Office.onReady(info => {
+  if (info.host !== Office.HostType.Word) {
+    $('empty').innerHTML = '<strong>Open this inside Word</strong>This panel only works as a Word add-in. The web version is at <a href="./">the Comma home page</a>.';
+    setStatus('Not in Word');
+    return;
+  }
+  Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, () => {
+    if (!$('live').checked) return;
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(runCheck, 900);
+  });
+  runCheck();
+});
+
+async function runCheck() {
+  if (busy) { pending = true; return; }
+  busy = true; setStatus('Checking', true);
+  try {
+    await Word.run(async ctx => {
+      const ps = ctx.document.body.paragraphs;
+      ps.load('items/text');
+      const sel = ctx.document.getSelection();
+      sel.load('isEmpty');
+      const selP = sel.paragraphs.getFirstOrNullObject();
+      selP.load('text');
+      await ctx.sync();
+      paras = ps.items.map(p => p.text);
+      // Don't nag about a missing period in the paragraph you are typing at this moment.
+      const typingIn = (!selP.isNullObject && sel.isEmpty) ? selP.text : null;
+      issues = [];
+      paras.forEach((raw, p) => {
+        const t = norm(raw);
+        if (!t.trim()) return;
+        for (const x of check(t)) {
+          if (x.rule === 'end-punct' && typingIn !== null && raw === typingIn) continue;
+          x.p = p; x.key = p + '|' + keyOf(x, t);
+          if (!ignored.has(keyOf(x, t))) issues.push(x);
+        }
+      });
+    });
+    $('error').hidden = true;
+    setStatus('Up to date');
+  } catch (e) { showError(e); setStatus('Error'); }
+  busy = false;
+  render();
+  if (pending) { pending = false; runCheck(); }
+}
+
+function vis(s) { return s.trim() === '' && s.length ? `<span class="ws">${s.replace(/ /g, '␣').replace(/\t/g, '⇥')}</span>` : esc(s); }
+function context(text, x) {
+  let pre = text.slice(Math.max(0, x.s - 26), x.s), post = text.slice(x.e, x.e + 26);
+  if (x.s > 26) pre = '…' + pre.replace(/^\S*\s/, '');
+  if (x.e + 26 < text.length) post = post.replace(/\s\S*$/, '') + '…';
+  pre = pre.replace(/\n+/g, ' '); post = post.replace(/\n+/g, ' ');
+  if (x.rep === null) return esc(pre) + `<mark>${esc(x.orig)}</mark>` + esc(post);
+  return esc(pre) + (x.orig ? `<del>${vis(x.orig)}</del>` : '') + (x.rep ? `<ins>${vis(x.rep)}</ins>` : '') + esc(post);
+}
+
+function render() {
+  shown = issues.filter(x => filter === 'all' || x.cat === filter);
+  const counts = { grammar: 0, punct: 0, caps: 0 };
+  issues.forEach(x => counts[x.cat]++);
+  $('c-all').textContent = issues.length;
+  for (const c in counts) $('c-' + c).textContent = counts[c];
+  $('totalNum').textContent = issues.length;
+  $('totalLabel').textContent = issues.length === 1 ? 'issue' : 'issues';
+  const fixable = issues.filter(x => x.rep !== null).length;
+  $('fixAll').disabled = fixable === 0;
+  $('fixAll').textContent = fixable ? `Fix all (${fixable})` : 'Fix all';
+
+  $('issues').innerHTML = shown.map((x, i) => `
+    <li class="issue${x.key === activeKey ? ' active' : ''}" data-cat="${x.cat}" data-i="${i}">
+      <div class="issue-head"><span class="issue-title">${esc(x.title)}</span><span class="issue-kind">${CAT_LABEL[x.cat]}</span></div>
+      <p class="ctx">${context(norm(paras[x.p]), x)}</p>
+      <p class="msg">${esc(x.msg)}</p>
+      <div class="acts">
+        ${x.rep !== null ? '<button type="button" class="accept">Accept</button>' : ''}
+        <button type="button" class="ignore">${x.rep !== null ? 'Ignore' : 'Dismiss'}</button>
+      </div>
+    </li>`).join('');
+
+  const empty = $('empty');
+  empty.hidden = shown.length > 0;
+  if (!paras.some(t => t.trim())) empty.innerHTML = '<strong>Nothing to check yet</strong>Start typing in your document, or open one.';
+  else if (!issues.length) empty.innerHTML = '<div class="check">✓</div><strong>No issues found</strong>No grammar, punctuation or capitalization problems. Comma checks common mistakes with fixed rules, so a final read-through still helps.';
+  else empty.innerHTML = '<strong>Nothing in this category</strong>Select All to see the other issues.';
+}
+
+// Find the Word range for an issue: search its paragraph for the text and pick the right occurrence.
+function occurrence(text, needle, at) {
+  let n = 0, i = text.indexOf(needle);
+  while (i !== -1 && i < at) { n++; i = text.indexOf(needle, i + needle.length); }
+  return i === at ? n : -1;
+}
+const searchText = s => s.replace(/\^/g, '^^').replace(/\n/g, '^l');
+
+async function withRanges(list, fn) {
+  return Word.run(async ctx => {
+    const ps = ctx.document.body.paragraphs;
+    ps.load('items/text');
+    await ctx.sync();
+    const searches = new Map();
+    const jobs = [];
+    for (const x of list) {
+      const para = ps.items[x.p];
+      if (!para || para.text !== paras[x.p]) continue; // paragraph changed since the last check
+      const n = occurrence(norm(para.text), x.orig, x.s);
+      if (n < 0) continue;
+      const k = x.p + '\u0000' + x.orig;
+      if (!searches.has(k)) {
+        const res = para.search(searchText(x.orig), { matchCase: true, matchWildcards: false });
+        res.load('items');
+        searches.set(k, res);
+      }
+      jobs.push({ x, n, res: searches.get(k) });
+    }
+    await ctx.sync();
+    const found = jobs.filter(j => j.res.items.length > j.n).map(j => ({ x: j.x, range: j.res.items[j.n] }));
+    await fn(found, ctx);
+    await ctx.sync();
+    return found.length;
+  });
+}
+
+async function accept(x) {
+  try {
+    const n = await withRanges([x], async found => {
+      for (const { x, range } of found) {
+        if (x.rep === '') range.delete(); else range.insertText(x.rep, 'Replace');
+      }
+    });
+    if (!n) setStatus('Text moved, checked again');
+  } catch (e) { showError(e); }
+  runCheck();
+}
+
+async function selectIssue(x) {
+  try { await withRanges([x], async found => { if (found[0]) found[0].range.select(); }); } catch (e) { showError(e); }
+}
+
+async function fixAll() {
+  $('fixAll').disabled = true;
+  setStatus('Fixing', true);
+  let total = 0;
+  try {
+    for (let pass = 0; pass < 3; pass++) {
+      const todo = issues.filter(x => x.rep !== null);
+      if (!todo.length) break;
+      total += await withRanges(todo, async found => {
+        for (const { x, range } of found) {
+          if (x.rep === '') range.delete(); else range.insertText(x.rep, 'Replace');
+        }
+      });
+      await runCheck();
+    }
+  } catch (e) { showError(e); }
+  await runCheck();
+  setStatus(`Fixed ${total}`);
+}
+
+$('issues').addEventListener('click', ev => {
+  const li = ev.target.closest('.issue'); if (!li) return;
+  const x = shown[+li.dataset.i]; if (!x) return;
+  if (ev.target.closest('.accept')) { accept(x); return; }
+  if (ev.target.closest('.ignore')) { ignored.add(keyOf(x, norm(paras[x.p]))); issues = issues.filter(y => y !== x); render(); return; }
+  activeKey = x.key;
+  document.querySelectorAll('.issue').forEach(el => el.classList.toggle('active', el === li));
+  selectIssue(x);
+});
+document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+  filter = b.dataset.cat;
+  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === b)));
+  render();
+}));
+$('fixAll').addEventListener('click', fixAll);
+$('recheck').addEventListener('click', runCheck);
+</script>
+</body>
+</html>
